@@ -5,12 +5,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TimeVaultLock {
     mapping(address => uint256) public depositTime;
-    IERC20 public TVLToken;
-    uint256 public constant LOCK_AMOUNT = 100;
+    IERC20 public Token;
+    uint256 public LOCK_AMOUNT;
 
-    constructor() payable {
-        //TVLToken = ERC20(0x2deaaC6795a531a607270032F396e6FE5de81159);
-        TVLToken = IERC20(0xe9DcE89B076BA6107Bb64EF30678efec11939234); // Usdc Polygon Address
+    constructor(address _TVtoken, uint256 _amount) payable {
+        
+        //TVLToken = IERC20(0xe9DcE89B076BA6107Bb64EF30678efec11939234); // Usdc Polygon Address
+        //TVLToken= IERC20(0xFA31614f5F776eDD6f72Bc00BdEb22Bd4A59A7Db); //Goerli faucet
+        Token = IERC20(_TVtoken);
+        LOCK_AMOUNT = _amount;
     }
 
     function deposit() external payable {
@@ -19,10 +22,10 @@ contract TimeVaultLock {
             "Already deposited from this wallet address"
         );
         require(
-            TVLToken.allowance(msg.sender, address(this)) >= LOCK_AMOUNT,
+            Token.allowance(msg.sender, address(this)) >= LOCK_AMOUNT,
             "Contract not authorized to spend tokens"
         );
-        TVLToken.transferFrom(msg.sender, address(this), LOCK_AMOUNT);
+        Token.transferFrom(msg.sender, address(this), LOCK_AMOUNT);
         depositTime[msg.sender] = block.timestamp;
     }
 
@@ -31,17 +34,16 @@ contract TimeVaultLock {
             depositTime[msg.sender] != 0,
             "No previous deposit from this wallet address"
         );
+        require(block.timestamp >= depositTime[msg.sender] + 2 minutes, "Tokens are still locked");
 
         uint256 lockedTime = block.timestamp - depositTime[msg.sender];
         require(lockedTime > 0, "Tokens are still locked");
 
-        uint256 tokensToMint = lockedTime;
-
         depositTime[msg.sender] = 0;
 
-        TVLToken.transfer(msg.sender, LOCK_AMOUNT);
+        Token.transfer(msg.sender, LOCK_AMOUNT);
         require(
-            TVLToken.balanceOf(address(this)) >= LOCK_AMOUNT,
+            Token.balanceOf(address(this)) >= LOCK_AMOUNT,
             "Transfer of tokens failed"
         );
 
