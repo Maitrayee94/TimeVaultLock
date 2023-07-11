@@ -1,11 +1,11 @@
 const hre = require("hardhat");
-const { TIME_VAULT_LOCK_TOKEN_CONTRACT_ADDRESS } = require("../constants");
+
 
 async function main() {
-  const tvltokenAddress= TIME_VAULT_LOCK_TOKEN_CONTRACT_ADDRESS;
+  
   const TimeVaultToken = await hre.ethers.getContractFactory("TimeVaultLock");
 
-  const TimeVaultT= await TimeVaultToken.deploy(tvltokenAddress);
+  const TimeVaultT= await TimeVaultToken.deploy();
 
   await TimeVaultT.deployed();
   console.log(`Bank contract address: ${TimeVaultT.address}`);
